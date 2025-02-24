@@ -38,6 +38,7 @@ static const struct {
 	{ UPNPEXT_PERFORM_STUN, "ext_perform_stun" },
 	{ UPNPEXT_STUN_HOST, "ext_stun_host" },
 	{ UPNPEXT_STUN_PORT, "ext_stun_port" },
+	{ UPNPEXT_STUN_NO_EXT_IP_RESERVED_LIMIT, "ext_stun_no_ext_ip_reserved_limit" },
 	{ UPNPLISTENING_IP, "listening_ip" },
 #ifdef ENABLE_IPV6
 	{ UPNPIPV6_LISTENING_IP, "ipv6_listening_ip" },

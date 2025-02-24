@@ -1090,6 +1090,7 @@ int update_ext_ip_addr_from_stun(int init)
 {
 	struct in_addr if_addr, ext_addr;
 	int restrictive_nat;
+	int no_ext_ip_reserved_limit = GETFLAG(PERFORMSTUNNOEXTIPRESERVEDLIMIT);
 	char if_addr_str[INET_ADDRSTRLEN];
 
 	syslog(LOG_INFO, "STUN: Performing with host=%s and port=%u ...", ext_stun_host, (unsigned)ext_stun_port);
@@ -1116,6 +1117,9 @@ int update_ext_ip_addr_from_stun(int init)
 	} else if ((init || !disable_port_forwarding) && restrictive_nat) {
 		if (addr_is_reserved(&if_addr)) {
 			syslog(LOG_WARNING, "STUN: ext interface %s with private IP address %s is now behind restrictive or symmetric NAT with public IP address %s which does not support port forwarding", ext_if_name, if_addr_str, ext_addr_str);
+			if (no_ext_ip_reserved_limit){
+				syslog(LOG_WARNING, "STUN: But you enabled ext_stun_no_ext_ip_reserved_limit, so we will not disable port forwarding, Even it is not work");
+			}
 			syslog(LOG_WARNING, "NAT on upstream router blocks incoming connections set by miniupnpd");
 			syslog(LOG_WARNING, "Turn off NAT on upstream router or change it to full-cone NAT 1:1 type");
 		} else {
@@ -1128,7 +1132,11 @@ int update_ext_ip_addr_from_stun(int init)
 	}
 
 	use_ext_ip_addr = ext_addr_str;
-	disable_port_forwarding = restrictive_nat;
+	if (no_ext_ip_reserved_limit) {
+		disable_port_forwarding = 0 ;
+	} else {
+		disable_port_forwarding = restrictive_nat;
+	}
 	return 0;
 }
 
@@ -1283,6 +1291,10 @@ init(int argc, char * * argv, struct runtime_vars * v)
 				break;
 			case UPNPEXT_STUN_PORT:
 				ext_stun_port = atoi(ary_options[i].value);
+				break;
+			case UPNPEXT_STUN_NO_EXT_IP_RESERVED_LIMIT:
+				if(strcmp(ary_options[i].value, "yes") == 0)
+					SETFLAG(PERFORMSTUNNOEXTIPRESERVEDLIMIT);
 				break;
 			case UPNPLISTENING_IP:
 				lan_addr = (struct lan_addr_s *) malloc(sizeof(struct lan_addr_s));
